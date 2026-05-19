@@ -1,47 +1,41 @@
 
 <!-- saved from url=(0307)http://localhost:5500/?iss=https%3A%2F%2Faccounts.google.com&code=4%2F0AeoWuM9ENSIrD1VmSH9-lMvHw_yX0SR1rR4QKX04qGH9E6OHdk5OhKr3GroV1SH4wd2Izg&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile&authuser=0&prompt=none -->
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body><!-- Code injected by live-server -->
-<script>
-    // Wait for everything on the webpage to fully load
-    window.addEventListener('load', () => {
-        
-        // Find the Eaglercraft canvas element automatically
+
+	<script>
+    (function() {
+        // Find the actual canvas running Eaglercraft
         function getGameCanvas() {
             return document.querySelector('canvas') || 
                    document.getElementById('game_frame') || 
                    document.querySelector('iframe');
         }
 
-        function forceFocusAndLock() {
-            const canvas = getGameCanvas();
-            if (!canvas) return;
-
-            // 1. Force absolute keyboard focus onto the game canvas
-            canvas.focus();
-
-            // 2. Request the browser to lock the pointer (Enables WASD movement keys)
-            if (canvas.requestPointerLock) {
-                canvas.requestPointerLock();
-            } else if (canvas.mozRequestPointerLock) {
-                canvas.mozRequestPointerLock(); // For Firefox support
-            } else if (canvas.webkitRequestPointerLock) {
-                canvas.webkitRequestPointerLock(); // For Safari/Chrome older support
+        // Force browser to lock mouse and unlock keys
+        function lockControl() {
+            const el = getGameCanvas();
+            if (el) {
+                el.focus();
+                if (el.requestPointerLock) el.requestPointerLock();
             }
         }
 
-        // Trigger focus/lock immediately when clicking anywhere on the webpage
-        document.addEventListener('click', forceFocusAndLock);
-        
-        // Trigger focus/lock if they tap keys trying to move
-        document.addEventListener('keydown', (e) => {
-            // If WASD or Spacebar are pressed, aggressively make sure canvas is focused
-            if (['w', 'a', 's', 'd', ' '].includes(e.key.toLowerCase())) {
-                forceFocusAndLock();
+        // Global Event Interceptor: Forcing keys directly to the canvas window
+        window.addEventListener('keydown', function(event) {
+            const el = getGameCanvas();
+            if (el && document.activeElement !== el) {
+                // Redirect standard movement keys if focus drifts
+                if (['w', 'a', 's', 'd', ' ', 'escape'].includes(event.key.toLowerCase())) {
+                    el.focus();
+                }
             }
-        });
+        }, { capture: true }); // Captures event before Eaglercraft can block it
 
-        console.log("Foolproof keyboard focus script is active.");
-    });
+        // Auto-lock controls when clicking anywhere on the screen
+        document.addEventListener('click', lockControl, { capture: true });
+        
+        console.log("Global window-level input override active.");
+    })();
 </script>
 
 <link rel="stylesheet" href="./Minecraft - MOJANG_files/style.css">
