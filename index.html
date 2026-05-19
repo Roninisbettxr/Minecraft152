@@ -2,62 +2,48 @@
 <!-- saved from url=(0307)http://localhost:5500/?iss=https%3A%2F%2Faccounts.google.com&code=4%2F0AeoWuM9ENSIrD1VmSH9-lMvHw_yX0SR1rR4QKX04qGH9E6OHdk5OhKr3GroV1SH4wd2Izg&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile&authuser=0&prompt=none -->
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body><!-- Code injected by live-server -->
 
-<script>
+ <script>
 (function() {
-    // List of keys needed for Minecraft movement/actions
-    const mcKeys = ['w', 'a', 's', 'd', ' ', 'escape', 'shift', 'control', 'q', 'e', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+    // 1. Instantly target the exact canvas layer running the game frame
+    const getTarget = () => document.querySelector('canvas') || document.getElementById('game_frame') || document.querySelector('iframe') || window;
 
-    function getCanvas() {
-        return document.querySelector('canvas') || document.getElementById('game_frame') || document.querySelector('iframe');
-    }
+    // 2. Absolute Focus Lockdown
+    function executeHardFocus() {
+        const target = getTarget();
+        if (!target) return;
 
-    function injectKeyEvent(type, originalEvent) {
-        const canvas = getCanvas();
-        if (!canvas) return;
+        // Force browser focus layout straight to the core container
+        target.focus();
+        if (target.setActive) target.setActive(); 
 
-        // Skip if the user is somehow typing in an actual text box
-        if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
-            return;
+        // Invoke native Pointer Lock (The only way browsers release WASD keys to 3D web apps)
+        const requestLock = target.requestPointerLock || target.mozRequestPointerLock || target.webkitRequestPointerLock;
+        if (requestLock) {
+            requestLock.call(target, {
+                unadjustedMovement: true // Bypasses OS mouse acceleration for zero-lag tracking
+            });
         }
-
-        // Create a fake clone of the hardware keyboard event
-        const fakeKey = new KeyboardEvent(type, {
-            key: originalEvent.key,
-            code: originalEvent.code,
-            keyCode: originalEvent.keyCode,
-            which: originalEvent.which,
-            type: type,
-            bubbles: true,
-            cancelable: true,
-            view: window
-        });
-
-        // Forcefully dispatch it directly into the game canvas element
-        canvas.dispatchEvent(fakeKey);
     }
 
-    // Capture hardware key presses BEFORE the browser or Eaglercraft can block them
+    // 3. Global Interception: Catch keys before the emulated engine blocks them
     window.addEventListener('keydown', function(e) {
-        if (mcKeys.includes(e.key.toLowerCase())) {
-            injectKeyEvent('keydown', e);
+        const active = document.activeElement;
+        // Ignore override only if you are actively typing inside an input text box
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+
+        // If any core game keys are pressed, forcefully snap focus back to the game window
+        if (['w', 'a', 's', 'd', ' ', 'escape', 'shift', 'control'].includes(e.key.toLowerCase())) {
+            if (document.pointerLockElement !== getTarget()) {
+                executeHardFocus();
+            }
         }
     }, { capture: true, passive: false });
 
-    window.addEventListener('keyup', function(e) {
-        if (mcKeys.includes(e.key.toLowerCase())) {
-            injectKeyEvent('keyup', e);
-        }
-    }, { capture: true, passive: false });
+    // 4. Bind to physical click actions anywhere on the webpage layout
+    document.addEventListener('click', executeHardFocus, { capture: true });
+    document.addEventListener('mousedown', executeHardFocus, { capture: true });
 
-    // Ensure mouse clicks also keep the system awake
-    window.addEventListener('mousedown', function() {
-        const canvas = getCanvas();
-        if (canvas && document.activeElement !== canvas) {
-            canvas.focus();
-        }
-    }, { capture: true });
-
-    console.log("Hardware Keyboard Emulator Active.");
+    console.log("Global System Input Bridge Active.");
 })();
 </script>
 
