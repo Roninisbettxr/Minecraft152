@@ -59,7 +59,7 @@
 <style> 
 	iframe{
 
-   width: 100%;
+    width: 100%;
     max-width: 100%;
 
      border-top-left-radius: 3%;
@@ -82,42 +82,12 @@ background-image: url(data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAk
 
 
 }
-
-
-
-
 </style>
-<script>
-    // Wait for the window to finish loading
-    window.addEventListener('DOMContentLoaded', () => {
-        
-        // Function to find and focus the game element
-        function forceGameFocus() {
-            // 1. Try to find the game canvas or iframe
-            const gameElement = document.querySelector('canvas') || 
-                                document.getElementById('game_frame') || 
-                                document.querySelector('iframe');
-            
-            if (gameElement) {
-                // Give it full focus
-                gameElement.focus();
-                
-                // For certain browsers, simulation clicks help lock input
-                gameElement.click();
-            }
-        }
-
-        // Force focus the second the page loads
-        forceGameFocus();
-
-        // Force focus whenever the user clicks ANYWHERE on the screen
-        document.addEventListener('click', forceGameFocus);
-        document.addEventListener('keydown', forceGameFocus);
-    });
-</script>
 
 
 
 
 
-<!-- Code inject--></body></html>
+
+</body>
+</html>
